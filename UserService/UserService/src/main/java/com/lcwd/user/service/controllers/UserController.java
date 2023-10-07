@@ -3,6 +3,7 @@ package com.lcwd.user.service.controllers;
 import com.lcwd.user.service.entities.User;
 import com.lcwd.user.service.services.UserService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,18 +30,22 @@ public class UserController {
         User user1 = userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user1);
     }
+    int retrycount=1;
 
     //single user get
     @GetMapping("/{userId}")
-    @CircuitBreaker(name="ratingHotelBreaker",fallbackMethod = "ratingHotelFallBack")
+    //@CircuitBreaker(name="ratingHotelBreaker",fallbackMethod = "ratingHotelFallBack")
+    @Retry(name="ratingHotelService",fallbackMethod = "ratingHotelFallBack")
     public ResponseEntity<User> getSingleUser(@PathVariable String userId) {
+        logger.info("Retry count: {}",retrycount);
+        retrycount++;
         User user = userService.getUser(userId);
         return ResponseEntity.ok(user);
     }
 
     //creating fallback method for circuit breaker
     public ResponseEntity<User> ratingHotelFallBack(String userId,Exception ex){
-        logger.info("Fallack is executed because service is down :"+ex.getMessage());
+       logger.info("Fallack is executed because service is down :"+ex.getMessage());
         User user=User.builder()
                 .email("dummy@gmail.com")
                 .name("Dummy")
