@@ -46,7 +46,7 @@ management:
 
   resilience4j:
      circuitbreaker:
-        instance:
+        instances:
           ratingHotelBreaker:
             registerHealthIndicator: true
             eventConsumerBufferSize: 10
@@ -63,5 +63,11 @@ management:
            max-attempts: 3
            wait-duration: 5s
 
+     ratelimiter:
+       instances:
+         userRateLimiter:
+           limitRefreshPeriod: 4s
+           limit-for-period: 2
+           timeoutDuration: 0s
 
 
